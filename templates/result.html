@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Result — Stress Estimator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-dark bg-dark px-4">
+    <span class="navbar-brand fw-bold">😌 Stress Estimator</span>
+    <div>
+      <a href="/" class="btn btn-outline-light btn-sm me-2">Home</a>
+      <a href="/history" class="btn btn-outline-light btn-sm">History</a>
+    </div>
+  </nav>
+
+  <div class="container py-5">
+
+    <h2 class="text-center fw-bold mb-4">Your Stress Estimation Result</h2>
+
+    <!-- Disclaimer -->
+    <div class="alert alert-warning text-center mb-4">
+      ⚠️ <strong>This is an estimated result based on facial expressions only.
+      It is NOT a medical diagnosis.</strong>
+      Please consult a healthcare professional for medical concerns.
+    </div>
+
+    <!-- Result Card -->
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+
+        <!-- Stress Level Display -->
+        <div id="resultCard" class="card shadow-lg p-4 text-center mb-4">
+          <h1 id="stressEmoji" class="display-1"></h1>
+          <h2 id="stressLabel" class="fw-bold mt-2"></h2>
+          <p id="stressMessage" class="text-muted fs-5"></p>
+          <div class="progress mt-3" style="height: 25px;">
+            <div id="confidenceBar"
+                 class="progress-bar fw-bold"
+                 role="progressbar">
+            </div>
+          </div>
+          <small class="text-muted mt-1">Confidence Level</small>
+        </div>
+
+        <!-- Probability Breakdown -->
+        <div class="card shadow-sm p-4 mb-4">
+          <h5 class="fw-bold mb-3">📊 Probability Breakdown</h5>
+          <div id="probBreakdown"></div>
+        </div>
+
+        <!-- Captured Image -->
+        <div class="card shadow-sm p-4 mb-4 text-center">
+          <h5 class="fw-bold mb-3">📷 Captured Image</h5>
+          <img id="capturedImage"
+               class="img-fluid rounded"
+               style="max-height: 300px;"
+               alt="Captured face">
+        </div>
+
+        <!-- Wellness Suggestions -->
+        <div class="card shadow-sm p-4 mb-4">
+          <h5 class="fw-bold mb-3">💡 Wellness Suggestions</h5>
+          <p class="text-muted small mb-3">
+            These are general wellness suggestions only — not medical advice.
+          </p>
+          <ul id="tipsList" class="list-group list-group-flush"></ul>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="text-center mt-4">
+          <a href="/camera" class="btn btn-success btn-lg me-3">
+            📷 Check Again
+          </a>
+          <a href="/history" class="btn btn-outline-secondary btn-lg me-3">
+            📊 View History
+          </a>
+          <a href="/" class="btn btn-outline-dark btn-lg">
+            🏠 Home
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-white text-center py-3 mt-5">
+    <small>⚠️ Not a medical tool. For wellness awareness only.</small>
+  </footer>
+
+  <script>
+    // ── Load result from sessionStorage ───────────────────────
+    // When user was redirected here from /capture,
+    // the result data was saved in sessionStorage
+    // We read it here and populate the page
+
+    const data = JSON.parse(sessionStorage.getItem('stressResult'));
+
+    if (!data) {
+      // No data found — redirect to home
+      window.location.href = '/';
+    } else {
+
+      // Emoji for each level
+      const emojis = {
+        "Low Stress"      : "😊",
+        "Moderate Stress" : "😐",
+        "High Stress"     : "😰"
+      };
+
+      // Colors for each level
+      const colors = {
+        "Low Stress"      : "success",
+        "Moderate Stress" : "warning",
+        "High Stress"     : "danger"
+      };
+
+      const label  = data.label;
+      const color  = colors[label] || "secondary";
+      const emoji  = emojis[label] || "😐";
+
+      // Set emoji and label
+      document.getElementById('stressEmoji').innerText   = emoji;
+      document.getElementById('stressLabel').innerText   = label;
+      document.getElementById('stressMessage').innerText = data.message;
+
+      // Color the result card border
+      document.getElementById('resultCard').classList.add('border-' + color);
+      document.getElementById('stressLabel').classList.add('text-' + color);
+
+      // Confidence progress bar
+      const bar = document.getElementById('confidenceBar');
+      bar.style.width     = data.confidence + '%';
+      bar.innerText       = data.confidence + '% confident';
+      bar.classList.add('bg-' + color);
+
+      // Probability breakdown bars
+      const probDiv = document.getElementById('probBreakdown');
+      const probColors = {
+        "Low Stress"      : "success",
+        "Moderate Stress" : "warning",
+        "High Stress"     : "danger"
+      };
+
+      for (const [name, prob] of Object.entries(data.all_probs)) {
+        probDiv.innerHTML += `
+          <div class="mb-2">
+            <div class="d-flex justify-content-between">
+              <small>${name}</small>
+              <small>${prob}%</small>
+            </div>
+            <div class="progress" style="height:12px;">
+              <div class="progress-bar bg-${probColors[name]}"
+                   style="width:${prob}%"></div>
+            </div>
+          </div>`;
+      }
+
+      // Show captured image
+      document.getElementById('capturedImage').src =
+        'data:image/jpeg;base64,' + data.image;
+
+      // Show wellness tips
+      const tipsList = document.getElementById('tipsList');
+      data.tips.forEach(tip => {
+        tipsList.innerHTML +=
+          `<li class="list-group-item">✅ ${tip}</li>`;
+      });
+
+      // Clear sessionStorage after use
+      sessionStorage.removeItem('stressResult');
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

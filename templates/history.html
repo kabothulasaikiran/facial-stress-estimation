@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>History — Stress Estimator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar navbar-dark bg-dark px-4">
+    <span class="navbar-brand fw-bold">😌 Stress Estimator</span>
+    <div>
+      <a href="/" class="btn btn-outline-light btn-sm me-2">Home</a>
+      <a href="/camera" class="btn btn-success btn-sm">📷 Check Stress</a>
+    </div>
+  </nav>
+
+  <div class="container py-5">
+
+    <h2 class="fw-bold mb-4">📊 Your Stress History</h2>
+
+    {% if predictions %}
+
+      <!-- Summary Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="card border-success p-3 text-center">
+            <h3 class="text-success fw-bold">
+              {{ predictions | selectattr('stress', 'equalto', 'Low Stress') | list | length }}
+            </h3>
+            <p class="mb-0">😊 Low Stress sessions</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-warning p-3 text-center">
+            <h3 class="text-warning fw-bold">
+              {{ predictions | selectattr('stress', 'equalto', 'Moderate Stress') | list | length }}
+            </h3>
+            <p class="mb-0">😐 Moderate Stress sessions</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-danger p-3 text-center">
+            <h3 class="text-danger fw-bold">
+              {{ predictions | selectattr('stress', 'equalto', 'High Stress') | list | length }}
+            </h3>
+            <p class="mb-0">😰 High Stress sessions</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Table -->
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <table class="table table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>#</th>
+                <th>Date and Time</th>
+                <th>Stress Level</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in predictions %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ p.timestamp }}</td>
+                <td>
+                  {% if p.stress == 'Low Stress' %}
+                    <span class="badge bg-success">😊 {{ p.stress }}</span>
+                  {% elif p.stress == 'Moderate Stress' %}
+                    <span class="badge bg-warning text-dark">😐 {{ p.stress }}</span>
+                  {% else %}
+                    <span class="badge bg-danger">😰 {{ p.stress }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ p.confidence }}%</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    {% else %}
+      <!-- No history yet -->
+      <div class="text-center py-5">
+        <h1 class="display-1">📷</h1>
+        <h4 class="text-muted">No history yet</h4>
+        <p class="text-muted">Check your stress level to see history here.</p>
+        <a href="/camera" class="btn btn-success btn-lg mt-3">
+          Check My Stress Now
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+
+  <footer class="bg-dark text-white text-center py-3 mt-5">
+    <small>⚠️ Not a medical tool. For wellness awareness only.</small>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

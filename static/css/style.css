@@ -1,0 +1,65 @@
+/* style.css - Global styles for Stress Estimator website */
+
+/* Hero section background gradient */
+.hero-section {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+}
+
+/* Step number circles on home page */
+.step-number {
+  width: 60px;
+  height: 60px;
+  background: #28a745;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 auto;
+}
+
+/* Card hover effect */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+/* Navbar styling */
+.navbar {
+  border-bottom: 2px solid #28a745;
+}
+
+/* Result page stress label */
+#stressLabel {
+  font-size: 2.5rem;
+}
+
+/* Progress bar animation */
+.progress-bar {
+  transition: width 1s ease-in-out;
+}
+
+/* Tips list */
+.list-group-item {
+  border-left: 4px solid #28a745;
+  margin-bottom: 5px;
+}
+
+/* Footer */
+footer {
+  border-top: 2px solid #28a745;
+}
+
+/* Responsive video feed */
+#videoFeed {
+  border-radius: 12px;
+}

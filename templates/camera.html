@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera — Stress Estimator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-dark">
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-dark bg-dark px-4">
+    <span class="navbar-brand fw-bold">😌 Stress Estimator</span>
+    <div>
+      <a href="/" class="btn btn-outline-light btn-sm me-2">Home</a>
+      <a href="/history" class="btn btn-outline-light btn-sm">History</a>
+    </div>
+  </nav>
+
+  <div class="container py-4 text-center">
+
+    <h2 class="text-white fw-bold mb-2">📷 Live Camera</h2>
+    <p class="text-white-50 mb-4">
+      Position your face clearly in the frame, then click Capture.
+    </p>
+
+    <!-- Live video feed from Flask -->
+    <!-- This img tag continuously receives frames from /video_feed -->
+    <div class="position-relative d-inline-block mb-4">
+      <img src="{{ url_for('video_feed') }}"
+           id="videoFeed"
+           class="rounded shadow"
+           style="width:640px; max-width:100%; border: 3px solid #28a745;">
+    </div>
+
+    <br>
+
+    <!-- Status message -->
+    <div id="statusMsg" class="alert alert-info d-none mb-3" role="alert"></div>
+
+    <!-- Loading spinner (hidden by default) -->
+    <div id="loadingSpinner" class="d-none mb-3">
+      <div class="spinner-border text-success" role="status"></div>
+      <p class="text-white mt-2">Analyzing your face... Please wait.</p>
+    </div>
+
+    <!-- Capture Button -->
+    <button id="captureBtn"
+            class="btn btn-success btn-lg px-5 fw-bold"
+            onclick="captureImage()">
+      📸 Capture & Analyze
+    </button>
+
+    <br><br>
+
+    <a href="/" class="btn btn-outline-light">← Back to Home</a>
+
+  </div>
+
+  <script>
+    // ── captureImage ──────────────────────────────────────────
+    // Called when user clicks the Capture button
+    // Sends POST request to /capture
+    // Receives prediction result and redirects to result page
+    function captureImage() {
+
+      // Show loading spinner and hide button
+      document.getElementById('captureBtn').disabled = true;
+      document.getElementById('captureBtn').innerText = 'Analyzing...';
+      document.getElementById('loadingSpinner').classList.remove('d-none');
+      document.getElementById('statusMsg').classList.add('d-none');
+
+      // Send POST request to Flask /capture route
+      fetch('/capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(response => response.json())
+      .then(data => {
+
+        if (data.error) {
+          // Show error message if no face detected
+          const msg = document.getElementById('statusMsg');
+          msg.classList.remove('d-none', 'alert-info');
+          msg.classList.add('alert-danger');
+          msg.innerText = '⚠️ ' + data.error;
+
+          // Re-enable button
+          document.getElementById('captureBtn').disabled = false;
+          document.getElementById('captureBtn').innerText = '📸 Capture & Analyze';
+          document.getElementById('loadingSpinner').classList.add('d-none');
+
+        } else {
+          // Save result data to sessionStorage
+          // sessionStorage holds data only for this browser tab session
+          sessionStorage.setItem('stressResult', JSON.stringify(data));
+
+          // Stop video feed
+          document.getElementById('videoFeed').src = '';
+
+          // Redirect to result page
+          window.location.href = '/result';
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('captureBtn').disabled = false;
+        document.getElementById('captureBtn').innerText = '📸 Capture & Analyze';
+        document.getElementById('loadingSpinner').classList.add('d-none');
+      });
+    }
+
+    // Stop camera when user leaves this page
+    window.addEventListener('beforeunload', function() {
+      fetch('/stop_camera');
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
