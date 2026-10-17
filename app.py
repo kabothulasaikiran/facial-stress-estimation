@@ -47,7 +47,12 @@ model       = load_model(MODEL_PATH)
 print("Model loaded successfully!")
 
 # ── 3. Load face detector ─────────────────────────────────────
-cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+# Download cascade if not exists
+import urllib.request
+cascade_path = "haarcascade_frontalface_default.xml"
+if not os.path.exists(cascade_path):
+    url = "https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_frontalface_default.xml"
+    urllib.request.urlretrieve(url, cascade_path)
 face_cascade = cv2.CascadeClassifier(cascade_path)
 
 # ── 4. Initialize database ────────────────────────────────────
